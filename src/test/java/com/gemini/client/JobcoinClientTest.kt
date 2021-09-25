@@ -1,5 +1,6 @@
 package com.gemini.client
 
+import com.gemini.cmd.Transaction
 import org.junit.Test
 
 // TODO - use mocks!
@@ -24,6 +25,65 @@ class JobcoinClientTest {
         client.getAddressInfo("THIS_DOES_NOT_EXIST").let { info ->
             assert(info.balance == "0")
             assert(info.transactions.isEmpty())
+        }
+    }
+
+    @Test
+    fun isUsedAddress() {
+        client.isUsedAddress("Alice").let { response -> assert(response == true) }
+        client.isUsedAddress("UNUSED").let { response -> assert(response == false) }
+    }
+
+    @Test
+    fun transfer_success() {
+        val fromAddressBalanceBefore = client.getAddressInfo("Test6").balance.toInt()
+        val toAddressBalanceBefore = client.getAddressInfo("house1").balance.toInt()
+        client.transfer(
+            Transaction(fromAddress = "Test6", toAddress = "house1", amount = "1")
+        )
+        // verify transfer occurred
+        client.getAddressInfo("Test6").balance.let { fromAddressBalanceAfter ->
+            assert(fromAddressBalanceAfter.toInt() == (fromAddressBalanceBefore - 1))
+        }
+        client.getAddressInfo("house1").balance.let { toAddressBalanceAfter ->
+            assert(toAddressBalanceAfter.toInt() == (toAddressBalanceBefore + 1))
+        }
+    }
+
+    @Test
+    fun transfer_insufficient_funds() {
+        val fromAddressBalanceBefore = client.getAddressInfo("Test6").balance.toInt()
+        val toAddressBalanceBefore = client.getAddressInfo("house1").balance.toInt()
+        client.transfer(
+            Transaction(fromAddress = "Test6", toAddress = "house1", amount = "100000")
+        ).let { response ->
+            assert(response == false)
+        }
+        // verify NO transfer occurred
+        client.getAddressInfo("Test6").balance.let { fromAddressBalanceAfter ->
+            assert(fromAddressBalanceAfter.toInt() == fromAddressBalanceBefore)
+        }
+        client.getAddressInfo("house1").balance.let { toAddressBalanceAfter ->
+            assert(toAddressBalanceAfter.toInt() == toAddressBalanceBefore)
+        }
+    }
+
+    @Test
+    fun transfer_invalid_fromAddress() {
+        val fromAddressBalanceBefore = client.getAddressInfo("THIS_DOES_NOT_EXIST").balance.toInt()
+        assert(fromAddressBalanceBefore == 0)
+        val toAddressBalanceBefore = client.getAddressInfo("house1").balance.toInt()
+        client.transfer(
+            Transaction(fromAddress = "THIS_DOES_NOT_EXIST", toAddress = "house1", amount = "1")
+        ).let { response ->
+            assert(response == false)
+        }
+        // verify NO transfer occurred
+        client.getAddressInfo("THIS_DOES_NOT_EXIST").balance.let { fromAddressBalanceAfter ->
+            assert(fromAddressBalanceAfter.toInt() == fromAddressBalanceBefore)
+        }
+        client.getAddressInfo("house1").balance.let { toAddressBalanceAfter ->
+            assert(toAddressBalanceAfter.toInt() == toAddressBalanceBefore)
         }
     }
 }

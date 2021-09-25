@@ -39,15 +39,19 @@ class JobcoinClient(private val baseUrl: String) {
         }
     }
 
-    fun transfer(transaction: Transaction) {
+    fun transfer(transaction: Transaction): Boolean {
         val body = mapper.writeValueAsString(transaction).toRequestBody(APPLICATION_JSON.toMediaTypeOrNull())
         val request = Request.Builder()
             .url("$baseUrl/transactions")
             .post(body)
             .build()
         client.executeHttpRequest(request).use { response ->
-            if(!response.isSuccessful) {
-                println("Error: unsuccessful transfer!")
+            return when (response.isSuccessful) {
+                false -> {
+                     println("Error: unsuccessful transfer!")
+                     false
+                 }
+                else -> true
             }
         }
     }
