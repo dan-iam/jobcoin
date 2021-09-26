@@ -30,8 +30,7 @@ class RegisterCmd(
 
     private fun validAddresses(addresses: List<String>): Boolean {
         var shouldUpdate = true
-        val sourceAddresses = source.toString().split(",")
-        sourceAddresses.forEach { address ->
+        addresses.forEach { address ->
             if (client.isUsedAddress(address)) {
                 println("Error: invalid address found -- please provide only unused addresses.")
                 shouldUpdate = false
