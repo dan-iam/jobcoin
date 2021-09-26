@@ -7,12 +7,12 @@ import kotlinx.cli.Subcommand
 import kotlin.random.Random
 
 
-const val HOUSE_ADDRESS = "house1"
-
 class TransferCmd(
     private val storage: Storage,
     private val client: JobcoinClient
 ) : Subcommand("transfer", "transfer jobcoin from from one address to another.")  {
+
+    private val houseAddress: String = client.houseAddress
 
     private val transfer by option(
         type = ArgType.String,
@@ -37,12 +37,18 @@ class TransferCmd(
                     true -> println("Error: invalid destination address")
                     else -> {
                         println("transferring $amount from $fromAddress to deposit address $toAddress")
-                        client.transfer(Transaction(fromAddress, toAddress, amount.toString()))
-                        println("transferring $amount from deposit address $toAddress to house address $HOUSE_ADDRESS")
-                        client.transfer(Transaction(toAddress, HOUSE_ADDRESS, amount.toString()))
-                        println("transferring $amount from house address $HOUSE_ADDRESS to source addresses $sourceAddresses")
-                        distributeTransfer(sourceAddresses, amount)
-                        println("Successfully and anonymously transferred $amount Jobcoin!")
+                        val depositResult = client.transfer(Transaction(fromAddress, toAddress, amount.toString()))
+                        when (depositResult) {
+                            false -> println("Error: unable to process transfer request.")
+                            else -> {
+                                println("transferring $amount from deposit address $toAddress to house address $houseAddress")
+                                client.transfer(Transaction(toAddress, houseAddress, amount.toString()))
+                                println("transferring $amount from house address $houseAddress to source addresses $sourceAddresses")
+                                distributeTransfer(sourceAddresses, amount)
+                                println("Successfully and anonymously transferred $amount Jobcoin!")
+                            }
+                        }
+
                     }
                 }
             }
@@ -51,20 +57,18 @@ class TransferCmd(
 
     private fun distributeTransfer(sourceAddresses: List<String>, amount: Int) {
         val transactions = mutableListOf<Transaction>()
-
-        println("Distributing transactions!")
         var totalTransferred = 0
         var amountLeft = amount
         var transactionAmount = randomAmount()
         while (amountLeft > transactionAmount) {
-            transactions.add(Transaction(HOUSE_ADDRESS, sourceAddresses.random(), transactionAmount.toString()))
+            transactions.add(Transaction(houseAddress, sourceAddresses.random(), transactionAmount.toString()))
             totalTransferred += transactionAmount
             amountLeft -= transactionAmount
             transactionAmount = randomAmount()
         }
 
         if (amountLeft > 0) {
-            transactions.add(Transaction(HOUSE_ADDRESS, sourceAddresses.random(), amountLeft.toString()))
+            transactions.add(Transaction(houseAddress, sourceAddresses.random(), amountLeft.toString()))
             totalTransferred += amountLeft
         }
 
