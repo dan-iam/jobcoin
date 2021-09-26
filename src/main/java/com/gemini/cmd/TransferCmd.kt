@@ -41,46 +41,54 @@ class TransferCmd(
                         when (depositResult) {
                             false -> println("Error: unable to process transfer request.")
                             else -> {
-                                println("transferring $amount from deposit address $toAddress to house address $houseAddress")
-                                client.transfer(Transaction(toAddress, houseAddress, amount.toString()))
-                                println("transferring $amount from house address $houseAddress to source addresses $sourceAddresses")
-                                distributeTransfer(sourceAddresses, amount)
+                                val transactions = mutableListOf<Transaction>()
+                                transactions.add(Transaction(toAddress, houseAddress, amount.toString()))
+                                transactions.addAll(distributeTransfer(sourceAddresses, amount))
+                                // in reality this would publish to a queue,
+                                // where another service would handle processing micro transactions
+                                // and any retries/failures
+                                // for the sake of the exercies we will complete transactions here
+                                publish(transactions, amount)
                                 println("Successfully and anonymously transferred $amount Jobcoin!")
                             }
                         }
-
                     }
                 }
             }
         }
     }
 
-    private fun distributeTransfer(sourceAddresses: List<String>, amount: Int) {
-        val transactions = mutableListOf<Transaction>()
+    private fun publish(transactions: List<Transaction>, amount: Int) {
         var totalTransferred = 0
+        transactions.forEachIndexed { idx, transaction ->
+            println("transferring ${transaction.amount} from ${transaction.fromAddress} to ${transaction.toAddress}")
+            client.transfer(transaction)
+            // first transaction is just moving from depositAddress to houseAddress.
+            // No need to account for in reconciliation
+            if (idx > 0) totalTransferred += transaction.amount.toInt()
+        }
+        println()
+        println("Verifying transactions...")
+        println("Verified: ${amount == totalTransferred}")
+        println("Gathering transfer details...")
+        println("Requested transfer=$amount Jobcoin Actual transfer=$totalTransferred")
+    }
+
+    private fun distributeTransfer(sourceAddresses: List<String>, amount: Int): List<Transaction> {
+        val transactions = mutableListOf<Transaction>()
         var amountLeft = amount
         var transactionAmount = randomAmount()
         while (amountLeft > transactionAmount) {
             transactions.add(Transaction(houseAddress, sourceAddresses.random(), transactionAmount.toString()))
-            totalTransferred += transactionAmount
             amountLeft -= transactionAmount
             transactionAmount = randomAmount()
         }
 
         if (amountLeft > 0) {
             transactions.add(Transaction(houseAddress, sourceAddresses.random(), amountLeft.toString()))
-            totalTransferred += amountLeft
         }
 
-        transactions.forEach { transaction ->
-            println("transferring ${transaction.amount} from ${transaction.fromAddress} to ${transaction.toAddress}")
-            client.transfer(transaction)
-        }
-        println()
-        println("Verifying transaction...")
-        println("Verified: ${amount == totalTransferred}")
-        println("Gathering transaction details...")
-        println("Requested transfer=$amount Jobcoin Actual transfer=$totalTransferred")
+        return transactions
     }
 
     private fun List<String>.random(): String {
