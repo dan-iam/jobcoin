@@ -15,8 +15,10 @@ fun main(args : Array<String>) {
     println("~~~~~~~~~~~~~~~~~")
     println()
     while (true) {
+        val url = System.getProperty("url")
+
         val parser = ArgParser("jobcoin")
-        val client = JobcoinClient(System.getProperty("url"))
+        val client = JobcoinClient(url ?: BASE_URL)
         val storage = FileSystem()
         val registerCmd = RegisterCmd(storage, client)
         val transferCmd = TransferCmd(storage, client)

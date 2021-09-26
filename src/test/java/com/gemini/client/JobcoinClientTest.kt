@@ -3,7 +3,6 @@ package com.gemini.client
 import com.gemini.cmd.Transaction
 import org.junit.Test
 
-// TODO - use mocks!
 class JobcoinClientTest {
 
     companion object {
@@ -30,8 +29,8 @@ class JobcoinClientTest {
 
     @Test
     fun isUsedAddress() {
-        client.isUsedAddress("Alice").let { response -> assert(response == true) }
-        client.isUsedAddress("UNUSED").let { response -> assert(response == false) }
+        assert(client.isUsedAddress("Alice") == true)
+        assert(client.isUsedAddress("UNUSED") == false)
     }
 
     @Test

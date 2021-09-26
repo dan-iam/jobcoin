@@ -18,7 +18,7 @@ class TransferCmd(
         type = ArgType.String,
         fullName = "transaction",
         shortName = "t",
-        description = "comma separated transfer request e.g. <fromAddress> <toAddress> <amount>"
+        description = "comma separated transfer request e.g. <fromAddress>,<toAddress>,<amount>"
     )
 
     override fun execute() {
@@ -76,7 +76,6 @@ class TransferCmd(
         println("Verifying transaction...")
         println("Verified: ${amount == totalTransferred}")
         println("Gathering transaction details...")
-        println()
         println("Requested transfer=$amount Jobcoin Actual transfer=$totalTransferred")
     }
 
