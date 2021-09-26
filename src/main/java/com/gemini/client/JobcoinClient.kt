@@ -9,7 +9,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
 
-class JobcoinClient(private val baseUrl: String) {
+class JobcoinClient(private val baseUrl: String, internal val houseAddress: String) {
 
     companion object {
         const val APPLICATION_JSON = "application/json"
