@@ -1,6 +1,7 @@
 package com.gemini.cmd
 
 import com.gemini.client.JobcoinClient
+import com.gemini.client.JobcoinClientTest
 import com.gemini.storage.FileSystem
 import kotlinx.cli.ArgParser
 import org.junit.Test
@@ -13,13 +14,16 @@ class TransferCmdTest {
 
     companion object {
         const val BASE_URL = "http://jobcoin.gemini.com/rockslide-scope/api"
+        const val TEST_HOUSE_ADDRESS = "house1"
     }
+
+    private val client = JobcoinClient(JobcoinClientTest.BASE_URL, TEST_HOUSE_ADDRESS)
+
 
     @Test
     fun transferCmd_success() {
         val tmpDirPath = Files.createTempFile("directory", ".json")
         val parser = ArgParser("jobcoin")
-        val client = JobcoinClient(BASE_URL)
         val storage = FileSystem(tmpDirPath.toString())
         // verify we have a fresh directory
         assert(storage.getDirectory().isEmpty())
@@ -49,7 +53,6 @@ class TransferCmdTest {
     fun transferCmd_insufficient_funds() {
         val tmpDirPath = Files.createTempFile("directory", ".json")
         val parser = ArgParser("jobcoin")
-        val client = JobcoinClient(BASE_URL)
         val storage = FileSystem(tmpDirPath.toString())
         // verify we have a fresh directory
         assert(storage.getDirectory().isEmpty())
@@ -80,7 +83,6 @@ class TransferCmdTest {
     fun transfer_invalid_fromAddress() {
         val tmpDirPath = Files.createTempFile("directory", ".json")
         val parser = ArgParser("jobcoin")
-        val client = JobcoinClient(BASE_URL)
         val storage = FileSystem(tmpDirPath.toString())
         // verify we have a fresh directory
         assert(storage.getDirectory().isEmpty())

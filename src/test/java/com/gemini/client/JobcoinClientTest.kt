@@ -7,9 +7,10 @@ class JobcoinClientTest {
 
     companion object {
         const val BASE_URL = "http://jobcoin.gemini.com/rockslide-scope/api"
+        const val TEST_HOUSE_ADDRESS = "house1"
     }
 
-    private val client = JobcoinClient(BASE_URL)
+    private val client = JobcoinClient(BASE_URL, TEST_HOUSE_ADDRESS)
 
     @Test
     fun getAddressInfo_valid_address() {
