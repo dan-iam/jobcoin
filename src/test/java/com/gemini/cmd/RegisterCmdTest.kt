@@ -16,7 +16,7 @@ class RegisterCmdTest {
         const val TEST_HOUSE_ADDRESS = "house1"
     }
 
-    private val client = JobcoinClient(JobcoinClientTest.BASE_URL, TransferCmdTest.TEST_HOUSE_ADDRESS)
+    private val client = JobcoinClient(BASE_URL, TEST_HOUSE_ADDRESS)
 
     @Test
     fun registerCmd_success() {
