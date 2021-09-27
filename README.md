@@ -1,6 +1,15 @@
 # Jobcoin
 
-Coin mixer PoC utilizing Jobcoin.
+Coin mixer PoC for Jobcoin.
+
+In practice the mixer would only anonymize transactions by splitting a transaction
+into N smaller transactions and publishing to a distributed queue e.g. Kafka, Redis, etc. A second service, jobcoin poster, 
+would read from the queue and handle posting all transactions.
+
+This architecture clearly separates responsibilities of anonymizing & posting transactions. 
+Additionally, it allows each operation to scale independently.
+
+For this PoC, the mixer/anonymizer will both mix and post transactions.
 
 ## Quick Start
 
@@ -27,8 +36,8 @@ Getting started with Jobcoin mixer is easy:
 * persist all transactions e.g. FileSystem, mysql, etc.
     * perform final reconciliation on all transactions
 * replace FileSystem storage with key-value store e.g Redis, DynamoDB, etc.
-* move "publish" function to own service that can be scaled appropriately
-    * separate services only concern would be to send transactions and handle any issues that arise e.g. handle retries
+* integrate distributed queue for publishing
+    * "publish" function would not actually post transactions, but merely publish to queue where additional service would read from queue and handle publishing of transactions.
 * add command to create new jobcoins for an address
 * fix "bug" causing application to terminate on invalid commands
    * IMHO should be able to fork kotlinx-cli and augment outputAndTerminate function (https://github.com/Kotlin/kotlinx-cli/blob/c073cbd5bf43fddfbef9d7790c8e8a90d1781fae/core/commonMain/src/ArgParser.kt#L179-L181)

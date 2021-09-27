@@ -44,10 +44,6 @@ class TransferCmd(
                                 val transactions = mutableListOf<Transaction>()
                                 transactions.add(Transaction(toAddress, houseAddress, amount.toString()))
                                 transactions.addAll(distributeTransfer(sourceAddresses, amount))
-                                // in reality this would publish to a queue,
-                                // where another service would handle processing micro transactions
-                                // and any retries/failures
-                                // for the sake of the exercies we will complete transactions here
                                 publish(transactions, amount)
                                 println("Successfully and anonymously transferred $amount Jobcoin!")
                             }
@@ -58,9 +54,15 @@ class TransferCmd(
         }
     }
 
+    // In practice this would just publish to distributed queue. Separate service would handle
+    // publishing transactions. For the sake of this exercies we will publish transactions here.
     private fun publish(transactions: List<Transaction>, amount: Int) {
         var totalTransferred = 0
         transactions.forEachIndexed { idx, transaction ->
+            // introducing randomness to prevent others from inferring transactions posted back-to-back are related.
+            // assumes we have many transactions from many services posting transactions simultaneously, thus
+            // this random delay helps mix up all transactions being posted.
+            Thread.sleep(Random.nextLong(1,20))
             println("transferring ${transaction.amount} from ${transaction.fromAddress} to ${transaction.toAddress}")
             client.transfer(transaction)
             // first transaction is just moving from depositAddress to houseAddress.
