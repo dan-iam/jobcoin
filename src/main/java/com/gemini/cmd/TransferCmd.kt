@@ -21,6 +21,12 @@ class TransferCmd(
         description = "comma separated transfer request e.g. <fromAddress>,<toAddress>,<amount>"
     )
 
+    // In practice this would be invoked continuously (not on demand as is currently),
+    // read from a distributed queue of transactions and process any made to a registered
+    // deposit address. i.e. read from queue, create transaction to move to house, create N
+    // smaller mixed/anonymized transactions, publish all transactions to distributed queue.
+    // For the sake of this exercise/Poc we will invoke this manually via cli cmd and process
+    // starting with the transaction made to a deposit address.
     override fun execute() {
         val transferRequest = transfer.toString().split(",")
         val fromAddress = transferRequest[0]
@@ -55,7 +61,7 @@ class TransferCmd(
     }
 
     // In practice this would just publish to distributed queue. Separate service would handle
-    // publishing transactions. For the sake of this exercies we will publish transactions here.
+    // publishing transactions. For the sake of this exercise/PoC we will publish transactions here.
     private fun publish(transactions: List<Transaction>, amount: Int) {
         var totalTransferred = 0
         transactions.forEachIndexed { idx, transaction ->

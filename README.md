@@ -2,9 +2,10 @@
 
 Coin mixer PoC for Jobcoin.
 
-In practice the mixer would only anonymize transactions by splitting a transaction
-into N smaller transactions and publishing to a distributed queue e.g. Kafka, Redis, etc. A second service, jobcoin poster, 
-would read from the queue and handle posting all transactions.
+In practice the mixer would read transactions from a distributed queue and would process all transactions made to registered
+deposit addresses. It's sole purpose would be to anonymize transactions by splitting a transaction
+into N smaller transactions. The resulting N smaller transactions would then be published to a distributed queue e.g. Kafka, Redis, etc. 
+A second service, jobcoin poster, would read from the queue and handle posting all transactions.
 
 This architecture clearly separates responsibilities of anonymizing & posting transactions. 
 Additionally, it allows each operation to scale independently.
@@ -37,6 +38,7 @@ Getting started with Jobcoin mixer is easy:
     * perform final reconciliation on all transactions
 * replace FileSystem storage with key-value store e.g Redis, DynamoDB, etc.
 * integrate distributed queue for publishing
+    * "TransferCmd" would read from queue and process transactions made to deposit addresses.
     * "publish" function would not actually post transactions, but merely publish to queue where additional service would read from queue and handle publishing of transactions.
 * add command to create new jobcoins for an address
 * fix "bug" causing application to terminate on invalid commands
